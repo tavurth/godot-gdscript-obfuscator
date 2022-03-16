@@ -2,8 +2,6 @@
 
 import re
 import os
-import string
-import random
 
 DRY_RUN = True
 
@@ -24,6 +22,9 @@ EXCLUDED_TOKENS = [
 TOKENS = ["class ", "var ", "func ", "const ", "for "]
 PREPEND_TYPES = ["true", "false"]
 PREPEND_FUNCS = ["len"]
+
+NO_TOKEN_MATCH = r"([^a-zA-Z_\"\'])"
+NO_FUNCTION_MATCH = r"([^a-zA-Z_\"\'\(])"
 
 name = 0
 names = {}
@@ -56,6 +57,9 @@ def filter_tokens(tokens: list):
 
 
 def extract_tokens(line: str):
+    """
+    TODO: Replace with a better token extractor
+    """
     return filter_tokens(
         line.replace(" ", "~")
         .replace("(", "~")
@@ -66,6 +70,10 @@ def extract_tokens(line: str):
 
 
 def extract_token(line: str, search: str):
+    """
+    Extract a token from a line
+    """
+    # TODO: Currently only extracts the first token
     tokens = extract_tokens(line)
     search = search.strip()
 
@@ -77,6 +85,9 @@ def extract_token(line: str, search: str):
 
 
 def extract(to_search: str):
+    """
+    Extract tokens from all files where to_search is found
+    """
     found = find(to_search)
     to_process = []
     to_extract = clip_search(to_search)
@@ -106,6 +117,10 @@ def extract(to_search: str):
 
 
 def process_no_mangle(to_return: dict):
+    """
+    Removes functions where the # no-mangle header
+    has been used. This is useful for mangling only some files
+    """
     matcher = re.compile("^(.+)# no-mangle", re.MULTILINE)
 
     for file_name in to_return:
@@ -189,10 +204,6 @@ def gen_name(item: dict):
     return names[token_name]
 
 
-NO_TOKEN_MATCH = r"([^a-zA-Z_\"\'])"
-NO_FUNCTION_MATCH = r"([^a-zA-Z_\"\'\(])"
-
-
 def obfuscate_token(file_data: str, item: dict):
     """
     Handles replacing a <token> such as function name
@@ -249,7 +260,12 @@ def obfuscate(file_data):
     return file_data
 
 
-def gen_prepends(file_data: str):
+def generate_prepends(file_data: str):
+    """
+    Generate functions and constants to place at the start of the file
+    for better minification. For example len(array) calls can be then replaced
+    with _x123(array)
+    """
     header_index = file_data.find("extends")
 
     file_header = file_data[0 : file_data.find("\n", header_index)]
@@ -277,7 +293,8 @@ def gen_prepends(file_data: str):
 
 
 def value_sorted(array: list):
-    return
+    """Sorts items in the array by the length of their value"""
+    return sorted(array, key=lambda x: len(x["value"]), reverse=True)
 
 
 def run():
@@ -293,12 +310,10 @@ def run():
 
         # Do the longest strings first
         # This gives us less chance of a name collision
-        for item in sorted(
-            extracted[file_name], key=lambda x: len(x["value"]), reverse=True
-        ):
+        for item in value_sorted(extracted[file_name]):
             file_data = obfuscate_token(file_data, item)
 
-        file_data = gen_prepends(file_data)
+        file_data = generate_prepends(file_data)
         file_data = obfuscate(file_data)
 
         if DRY_RUN:
