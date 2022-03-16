@@ -18,3 +18,28 @@ In the future we will probably move this to pure python.
 1. Put this script in your game directory
 2. Ensure ~DRY_RUN~ is ~True~ at the top of the file (only ~prints~ changes)
 3. ~python3 obfuscator.py~
+
+** # no-mangle
+
+Currently ~# no-mangle~ keyword is supported only for function names
+
+#+begin_src gdscript
+func my_function(): # no-mangle
+	pass
+#+end_src
+
+Which will keep the name of the function intact
+
+** Examples
+
+*** Before
+[[https://user-images.githubusercontent.com/100964/158587446-158ce369-cb4a-45ce-b8cd-7329df61e0df.png]]
+
+*** After
+[[https://user-images.githubusercontent.com/100964/158587624-b473b637-b3b2-4dd9-93dd-d725d48d1491.png]]
+
+* Support
+
+Currently this is something that I will work on when I have some free time. If you like this project and want me to work on it more, consider buying me a coffee ☕️
+
+@@html:<a href="https://www.buymeacoffee.com/tavurth" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>

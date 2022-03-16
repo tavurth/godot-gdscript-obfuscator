@@ -5,9 +5,8 @@ import os
 import string
 import random
 
-DRY_RUN = True
+DRY_RUN = False
 
-TOKENS = ["var ", "func ", "const ", "for "]
 EXCLUDED_FILES = ["./scripts/obfuscate.py"]
 EXCLUDED_TOKENS = [
     "_process",
@@ -22,12 +21,12 @@ EXCLUDED_TOKENS = [
     "basis",
 ]
 
-PREPEND_TYPES = ["GDScriptFunctionState", "true", "false"]
-PREPEND_FUNCS = ["len", "add_child", "remove_child"]
+TOKENS = ["class ", "var ", "func ", "const ", "for "]
+PREPEND_TYPES = ["true", "false"]
+PREPEND_FUNCS = ["len"]
 
 name = 0
 names = {}
-name_types = ["_", "__", "___"]
 
 
 def find(to_search: str):
@@ -74,7 +73,7 @@ def extract_token(line: str, search: str):
 
 def extract(to_search: str):
     found = find(to_search)
-    to_return = []
+    to_process = []
     to_extract = clip_search(to_search)
 
     for line in found:
@@ -88,9 +87,6 @@ def extract(to_search: str):
         parts = [i.strip() for i in parts]
         file_name = parts[0]
 
-        if "# no-mangle" in parts:
-            continue
-
         try:
             token_name = extract_token(parts[1], to_search)
         except ValueError:
@@ -102,34 +98,56 @@ def extract(to_search: str):
         if token_name in EXCLUDED_TOKENS:
             continue
 
-        to_return.append({"file": file_name, "value": token_name})
+        to_process.append({"file": file_name, "value": token_name})
+
+    return to_process
+
+
+def process_no_mangle(to_return: dict):
+    matcher = re.compile("^(.+)# no-mangle", re.MULTILINE)
+
+    for file_name in to_return:
+        with open(file_name, "r") as fin:
+            file_data = fin.read()
+
+        if "# no-mangle" not in file_data:
+            continue
+
+        results = matcher.findall(file_data)
+
+        for result in results:
+            # TODO: Match more than function name
+            tokens = extract_tokens(result)
+            if tokens[1] in to_return[file_name]:
+                to_return[file_name].remove(tokens[1])
 
     return to_return
 
 
-def extract_all(to_search: list):
-    to_return = []
+def merge(old: dict, new: dict):
+    # Now sort everything into a dictionary of files -> values
+    to_return = old
 
-    for search_token in to_search:
-        to_return += extract(search_token)
+    for item in new:
+        value = item["value"]
+        file_name = item["file"]
+
+        if file_name not in to_return:
+            to_return[file_name] = []
+
+        if value not in to_return[file_name]:
+            to_return[file_name].append(value)
 
     return to_return
 
 
-def build_files_dict(extracted: list):
+def extract_all():
     to_return = {}
 
-    for item in extracted:
-        if item["file"] not in to_return:
-            to_return[item["file"]] = []
+    for search_token in TOKENS:
+        to_return = merge(to_return, extract(search_token))
 
-        to_return[item["file"]].append(item["value"])
-
-    return to_return
-
-
-def gen_name_type():
-    return random.choice(name_types) + random.choice(string.ascii_letters)
+    return process_no_mangle(to_return)
 
 
 def gen_name(token_name: str):
@@ -137,7 +155,7 @@ def gen_name(token_name: str):
 
     if token_name not in names:
         name += 1
-        names[token_name] = gen_name_type() + str(name)
+        names[token_name] = "_" + str(name)
 
     return names[token_name]
 
@@ -168,10 +186,7 @@ def cleanup(file_data):
     file_data = re.sub("^\t?\n", "", file_data, flags=re.MULTILINE)
 
     # Put return on sameline after if or func
-    file_data = re.sub(":\n\t+return", ":return", file_data)
-
-    # Put return on sameline after statement
-    file_data = re.sub("\n+\t+return", ";return", file_data)
+    file_data = re.sub(":\n\t+return", ": return", file_data)
 
     # Remove self references
     file_data = re.sub("self\.", "", file_data)
@@ -198,28 +213,30 @@ def gen_prepends(file_data: str):
     # we can compare types in a more obfuscated way
     for item in PREPEND_TYPES:
         token = gen_name(item)
-        token_data = "const {item} = {token}\n".format(item=item, token=token)
+        token_data = "const {token} = {item}\n".format(item=item, token=token)
+        file_body = file_body.replace(item, token)
         file_body = token_data + file_body
 
     # Generate a lot of functions so we can replace
     # basic GDScript functions with our obfuscated ones
     for item in PREPEND_FUNCS:
         token = gen_name(item)
-        token_data = "func {item}(arg):\n\treturn {token}(arg)\n".format(
+        token_data = "func {token}(arg):\n\treturn {item}(arg)\n".format(
             item=item, token=token
         )
+        file_body = file_body.replace(item, token)
         file_body = token_data + file_body
 
     return file_header + "\n" + file_body
 
 
-def run(*to_search: list):
-    extracted = build_files_dict(extract_all(to_search))
+def run():
+    extracted = extract_all()
 
-    count = 0
     for file_name in extracted:
-        print("[Obfuscating]:", file_name + "...")
+        print("[Obfuscating]:", file_name)
 
+        # Read the current file
         with open(file_name) as fin:
             file_data = fin.read()
 
@@ -238,4 +255,4 @@ def run(*to_search: list):
                 fout.write(file_data)
 
 
-run(*TOKENS)
+run()
