@@ -38,3 +38,10 @@ In the future we will probably move this to pure python.
 2.  Ensure `DRY_RUN` is `True` at the top of the file (only `prints` changes)
 3.  `python3 obfuscator.py`
 
+## Examples
+
+**Before**
+<img width="832" alt="Screenshot 2022-03-16 at 15 13 17" src="https://user-images.githubusercontent.com/100964/158587446-158ce369-cb4a-45ce-b8cd-7329df61e0df.png">
+
+**After**
+<img width="832" alt="Screenshot 2022-03-16 at 15 14 24" src="https://user-images.githubusercontent.com/100964/158587624-b473b637-b3b2-4dd9-93dd-d725d48d1491.png">
