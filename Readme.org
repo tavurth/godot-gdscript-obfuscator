@@ -1,0 +1,20 @@
+#+TITLE: Godot GDScript Obfuscator
+
+* Usage
+
+** ‼ Use this at your own risk ‼
+
+This is very early work and this will mess up your game if you don't have a git backup.
+
+Currently not production ready, built more as an example of what we could do for GDScript obfuscation
+
+** Dependencies
+
+This currently uses ~pt~ ([[https://github.com/monochromegane/the_platinum_searcher][platinum-searcher]]) for quickly finding all of the references in the project.
+In the future we will probably move this to pure python.
+
+** Running the obfuscator
+
+1. Put this script in your game directory
+2. Ensure ~DRY_RUN~ is ~True~ at the top of the file (only ~prints~ changes)
+3. ~python3 obfuscator.py~
