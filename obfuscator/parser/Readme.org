@@ -1,0 +1,6 @@
+#+TITLE: Readme
+
+
+Files in this folder were originally found in the [[https://github.com/Scony/godot-gdscript-toolkit][godot-gdscript-toolkit]] repository.
+
+I have modified the sources, but their license remains intact and applies to only this subfolder.

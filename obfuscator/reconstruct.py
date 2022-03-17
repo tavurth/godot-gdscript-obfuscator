@@ -99,7 +99,7 @@ def process_while_stmt(tree: Tree):
     return "while " + construct(tree, stop=1) + ":\n" + construct(tree, start=1)
 
 
-def process_continue_stmt(tree: Tree):
+def process_continue_stmt(_tree: Tree):
     return "continue\n"
 
 
@@ -121,9 +121,6 @@ def process_string(tree: Tree):
 
 def process_tool_stmt(tree: Tree):
     return "tool\n"
-
-
-n
 
 
 def process_default(tree: Tree):
