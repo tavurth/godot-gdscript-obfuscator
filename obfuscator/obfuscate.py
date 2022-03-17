@@ -2,6 +2,7 @@
 
 import os
 import re
+from lark import Tree, Token
 from .parser import parser
 from .reconstruct import reconstruct
 
@@ -47,30 +48,21 @@ def find_all_gdscript_files():
     return [i for i in to_return if ".gd" in i]
 
 
-def cleanup_original(original: str):
+def mangle(result: Tree):
     """
-    Handles the replacement of common GDScript patterns
-    Removing newlines and compressing the script in general
+    Take in a lark tree and iterate through each
+    name (function or variable) mangling them in turn
     """
-    # Remove comments
-    original = re.sub(r"\t+#.*\n", "", original)
-
-    # Remove comment headers
-    original = re.sub(r'([\'"])\1\1(.*?)\1{3}', "", original, flags=re.DOTALL)
-
-    # Remove multiple newlines
-    original = re.sub(r"^\t?\n", "", original, flags=re.MULTILINE)
-
-    return original
+    return result
 
 
 def obfuscate():
     for filename in find_all_gdscript_files():
         with open(filename, "r") as fin:
-            file_data = cleanup_original(fin.read())
+            file_data = fin.read()
 
         result = parser.parse(file_data)
-
+        result = mangle(result)
         result = reconstruct(file_data, result)
 
         print(result)

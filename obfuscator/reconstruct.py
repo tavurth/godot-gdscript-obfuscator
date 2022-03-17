@@ -119,6 +119,13 @@ def process_string(tree: Tree):
     return construct(tree, start=1)
 
 
+def process_tool_stmt(tree: Tree):
+    return "tool\n"
+
+
+n
+
+
 def process_default(tree: Tree):
     raise ValueError("No type to handle this case: " + str(tree))
 
@@ -142,6 +149,7 @@ TREE_TYPES = {
     "getattr": process_getattr,
     "getattr_call": process_getattr_call,
     "expr_stmt": process_expr_stmt,
+    "tool_stmt": process_tool_stmt,
     "standalone_call": process_standalone_call,
     "func_var_stmt": process_func_var_stmt,
     "var_assigned": process_var_assigned,
@@ -170,11 +178,31 @@ def construct(tree: Tree, **kwargs):
     return to_return
 
 
+def cleanup(original: str):
+    """
+    Handles the replacement of common GDScript patterns
+    Removing newlines and compressing the script in general
+    """
+    # Remove comments
+    original = re.sub(r"\t+#.*\n", "", original)
+
+    # Remove comment headers
+    original = re.sub(r'([\'"])\1\1(.*?)\1{3}', "", original, flags=re.DOTALL)
+
+    # Remove multiple newlines
+    original = re.sub(r"^\t?\n", "", original, flags=re.MULTILINE)
+
+    # Always put return on a newline
+    # original = re.sub(r"((\t)+.*:\s?return)", ":")
+
+    return original
+
+
 def reconstruct(original: str, tree: Tree, **kwargs):
     to_return = []
 
     constructed = construct(tree)
-    split_original = original.split("\n")
+    split_original = cleanup(original).split("\n")
     split_construct = constructed.split("\n")
 
     for idx in range(len(split_construct)):
