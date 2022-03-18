@@ -5,7 +5,7 @@ _simple_class_stmt: single_class_stmt (";" single_class_stmt)* [";"]
 ?single_class_stmt: tool_stmt
                   | pass_stmt
                   | signal_stmt
-                  | extends_stmt
+                  | extends
                   | classname_stmt
                   | class_var_stmt
                   | const_stmt
@@ -13,7 +13,7 @@ _simple_class_stmt: single_class_stmt (";" single_class_stmt)* [";"]
                   | onready_stmt
                   | puppet_var_stmt
                   | docstr_stmt
-                  | classname_extends_stmt
+                  | classname_extends
 ?compound_class_stmt: class_def
                     | enum_def
                     | "static" func_def -> static_func_def
@@ -28,9 +28,9 @@ _simple_class_stmt: single_class_stmt (";" single_class_stmt)* [";"]
 
 tool_stmt: "tool"
 signal_stmt: "signal" NAME ["(" [NAME ("," NAME)* [trailing_comma]] ")"]
-extends_stmt: "extends" (NAME | string) ("." NAME)*
+extends: "extends" (NAME | string) ("." NAME)*
 classname_stmt: "class_name" NAME ["," string]
-!classname_extends_stmt: "class_name" NAME ["," string] "extends" (NAME | string) ("." NAME)*
+!classname_extends: "class_name" NAME ["," string] "extends" (NAME | string) ("." NAME)*
 export_stmt: export_inf | export_typed
 export_inf: "export" [(puppet|onready)] (var_assigned | var_typed | var_typed_assgnd | var_inf) [setget]
 export_typed: "export" "(" TYPE ("," expr)* ")" [(puppet|onready)] class_var_stmt
@@ -54,7 +54,7 @@ puppet: "puppet"
 onready: "onready"
 docstr_stmt: string
 
-class_def: "class" NAME [extends_stmt] ":" (_class_body | _class_stmt)
+class_def: "class" NAME [extends] ":" (_class_body | _class_stmt)
 _class_body: _NL _INDENT _class_stmt+ _DEDENT
 
 func_def: func_header _func_suite
@@ -76,8 +76,8 @@ _simple_func_stmt: single_func_stmt (";" single_func_stmt)* [";"]
                  | return_stmt
                  | func_var_stmt
                  | break_stmt
-                 | continue_stmt
-                 | expr_stmt
+                 | continue
+                 | expression
 ?compound_func_stmt: if_stmt
                    | while_stmt
                    | for_stmt
@@ -86,8 +86,8 @@ pass_stmt: "pass"
 return_stmt: "return" [expr]
 func_var_stmt: _var_stmt
 break_stmt.2: "break"
-continue_stmt.2: "continue"
-expr_stmt: expr
+continue.2: "continue"
+expression: expr
 if_stmt: if_branch (_NL? elif_branch)* [_NL? else_branch]
 if_branch: "if" expr ":" _func_suite
 elif_branch: "elif" expr ":" _func_suite
@@ -141,8 +141,8 @@ c_dict_pattern_element: test_pattern ":" test_pattern
 eq_dict_pattern_element: NAME "=" test_pattern
 
 expr: test_expr
-    | assnmnt_expr
-assnmnt_expr: attr_expr _assnmnt_op test_expr
+    | assignment
+assignment: attr_expr _assnmnt_op test_expr
 !_assnmnt_op: "=" | "+=" | "-=" | "*=" | "/=" | "%=" | "&=" | "|=" | "^=" | ">>=" | "<<="
 !?test_expr: or_test ["if" or_test "else" test_expr]
 !?or_test: and_test (("or" | "||") and_test)*

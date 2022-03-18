@@ -31,4 +31,13 @@ func test():
 		if a > 5:
 			continue
 
+
+	match a:
+		5:
+			print("HERE")
+		10:
+			print("Not HERE")
+		_:
+			print("Not HERE")
+
 	a = 10
