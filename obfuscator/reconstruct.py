@@ -20,7 +20,7 @@ def join_children(tree: Tree, join_by: str):
     return to_return.rstrip(join_by)
 
 
-def process_extends_stmt(tree: Tree):
+def process_extends(tree: Tree):
     return "extends " + construct(tree, max=1) + "\n"
 
 
@@ -79,11 +79,11 @@ def process_getattr_call(tree: Tree):
     return construct(tree)
 
 
-def process_expr_stmt(tree: Tree):
+def process_expression(tree: Tree):
     return construct(tree)
 
 
-def process_assnmnt_expr(tree: Tree):
+def process_assignment(tree: Tree):
     return construct(tree)
 
 
@@ -99,7 +99,7 @@ def process_while_stmt(tree: Tree):
     return "while " + construct(tree, stop=1) + ":\n" + construct(tree, start=1)
 
 
-def process_continue_stmt(tree: Tree):
+def process_continue(_tree: Tree):
     return "continue\n"
 
 
@@ -123,7 +123,20 @@ def process_tool_stmt(tree: Tree):
     return "tool\n"
 
 
-n
+def process_match_stmt(tree: Tree):
+    return "match " + construct(tree, start=1)
+
+
+def process_match_branch(tree: Tree):
+    return construct(tree, stop=1) + ":\n" + construct(tree, start=1)
+
+
+def process_pattern(tree: Tree):
+    return construct(tree)
+
+
+def process_pattern_wildcard(tree: Tree):
+    return construct(tree)
 
 
 def process_default(tree: Tree):
@@ -131,31 +144,35 @@ def process_default(tree: Tree):
 
 
 TREE_TYPES = {
-    "name": process_name,
-    "extends_stmt": process_extends_stmt,
-    "assnmnt_expr": process_assnmnt_expr,
+    "assignment": process_assignment,
+    "comparison": process_comparison,
+    "continue": process_continue,
+    "else_branch": process_else_branch,
+    "expr": process_expr,
+    "expression": process_expression,
+    "extends": process_extends,
+    "func_arg_typed": process_func_arg_typed,
+    "func_args": process_func_args,
     "func_def": process_func_def,
     "func_header": process_func_header,
-    "func_args": process_func_args,
-    "func_arg_typed": process_func_arg_typed,
-    "while_stmt": process_while_stmt,
-    "continue_stmt": process_continue_stmt,
-    "if_stmt": process_if_stmt,
-    "if_branch": process_if_branch,
-    "expr": process_expr,
-    "not_test": process_not_test,
-    "type_test": process_type_test,
-    "return_stmt": process_return_stmt,
+    "func_var_stmt": process_func_var_stmt,
     "getattr": process_getattr,
     "getattr_call": process_getattr_call,
-    "expr_stmt": process_expr_stmt,
-    "tool_stmt": process_tool_stmt,
+    "if_branch": process_if_branch,
+    "if_stmt": process_if_stmt,
+    "match_branch": process_match_branch,
+    "match_stmt": process_match_stmt,
+    "name": process_name,
+    "not_test": process_not_test,
+    "pattern": process_pattern,
+    "return_stmt": process_return_stmt,
     "standalone_call": process_standalone_call,
-    "func_var_stmt": process_func_var_stmt,
-    "var_assigned": process_var_assigned,
-    "comparison": process_comparison,
-    "else_branch": process_else_branch,
     "string": process_string,
+    "tool_stmt": process_tool_stmt,
+    "type_test": process_type_test,
+    "var_assigned": process_var_assigned,
+    "while_stmt": process_while_stmt,
+    "wildcard_pattern": process_pattern_wildcard,
 }
 
 
