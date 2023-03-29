@@ -18,6 +18,15 @@
 # Usage
 
 
+This project was not really ready for production use and was more used as a way to show what might be possible.
+
+The proposal to read if you find this repository interesting:
+https://github.com/godotengine/godot-proposals/issues/4220
+
+Please do not attempt to use this to mangle your project files 🙏
+
+
+
 <a id="orgbe5b6ba"></a>
 
 ## ‼ Use this at your own risk ‼
